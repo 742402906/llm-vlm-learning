@@ -136,3 +136,34 @@ Evaluation:
 1. **模型默认不知道"讲给谁听"**：Zero-shot（Case 1）输出专业完整，但是"教科书式"的，术语密集、无例子，对初学者不友好——输出的风格完全取决于 prompt 里给没给受众信息。
 2. **角色 + 受众 + 要求能精确控制风格**（Case 2）：加上"专家身份、面向初学者、简单语言、给例子"后，模型改用比喻、emoji、表格和实例，可读性大幅提升，且要求的三点全部被执行；代价是数学细节被省略。
 3. **结构化 prompt 锁定输出组织**（Case 3）：给定章节标题后输出逐字遵循，适合需要固定格式、可解析输出的场景（如批量生成、报告模板）。三个 Case 的核心知识一致，差异主要在**表达方式**而非事实准确性——Prompt 改变的是"怎么讲"，而不是"讲什么"。
+
+---
+
+## 评测指标（引入评测思维）
+
+不要只说"感觉 XX 更好"——把评价变成可度量的指标：
+
+| 指标 | 含义 | 评分方式 |
+|---|---|---|
+| Completeness 完整性 | 是否覆盖 Encoder / Decoder / Attention / Position Encoding | 0=没有回答；1=简单提到（覆盖部分概念）；2=完整解释（4 个概念全覆盖） |
+| Accuracy 准确性 | 有没有事实错误（典型错误示例："Transformer 完全依赖 CNN 提取特征"；正确表述："Transformer 主要依靠 Self-Attention 建立 token 之间关系"） | 人工检查（雏形阶段不自动化） |
+| Instruction Following 指令遵循 | 是否满足 prompt 的格式要求（如要求 5 个章节，实际是否 5 个） | 0=没有遵循；1=部分遵循；2=完全遵循 |
+
+## 自动化测试框架雏形
+
+把实验代码化，流程：读取 prompt → 调用 Qwen3 → 保存结果 → 生成实验报告。
+
+- `llm/prompt/prompts.json`：测试用 prompt 配置。zero_shot / role_prompt / structured_prompt 三条，结构化 prompt 带 `expected_sections: 5` 字段供指令遵循指标使用
+- `llm/prompt/prompt_test.py`：自动执行并打分，结果存 `results/results_*.json`，报告存 `results/report_*.md`
+
+### 首次自动运行结果（2026-09-25）
+
+| Prompt | Completeness | Instruction Following | Accuracy |
+|---|---|---|---|
+| zero_shot | 2 | N/A | 人工待评 |
+| role_prompt | 2 | N/A | 人工待评 |
+| structured_prompt | 2 | 2（5 个章节全部命中） | 人工待评 |
+
+三个 prompt 完整性均满分（4 个核心概念全覆盖）；指令遵循只有 structured_prompt 适用，5 个章节全部命中。Accuracy 留人工，后续可迭代为 LLM-as-Judge 自动评审。
+
+复现：`conda activate llm-vlm-learning` 后运行 `python llm/prompt/prompt_test.py`。

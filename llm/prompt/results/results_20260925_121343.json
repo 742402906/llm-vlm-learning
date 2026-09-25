@@ -1,0 +1,64 @@
+{
+  "timestamp": "20260925_121343",
+  "model": "qwen3:8b",
+  "results": [
+    {
+      "name": "zero_shot",
+      "prompt": "解释Transformer",
+      "output": "Transformer 是一种革命性的深度学习模型架构，由 Google 在 2017 年的论文《Attention Is All You Need》中提出。它通过 **自注意力机制（Self-Attention）** 和 **位置编码** 等创新技术，解决了传统 RNN 和 CNN 在处理序列数据时的局限性（如长距离依赖、并行计算困难等）。以下是其核心原理和关键组件的详细解释：\n\n---\n\n### **1. 核心思想：自注意力机制**\n自注意力机制（Self-Attention）是 Transformer 的核心，它让模型在处理序列时能够动态关注到序列中不同位置的信息，从而捕捉长距离依赖关系。\n\n#### **1.1 为什么需要自注意力？**\n传统 RNN 通过循环逐词处理序列，容易出现梯度消失/爆炸问题，且无法并行计算。CNN 虽然可以并行，但局限于局部感受野，难以捕捉全局信息。\n\n#### **1.2 自注意力的计算步骤**\n假设输入序列是 $ x_1, x_2, ..., x_n $，自注意力的计算分为以下步骤：\n1. **线性变换**：将每个词向量 $ x_i $ 分别投影到三个空间：查询（Query）、键（Key）、值（Value）：\n   $$\n   Q = XW_Q, \\quad K = XW_K, \\quad V = XW_V\n   $$\n2. **计算注意力分数**：通过点积计算每个位置的注意力权重：\n   $$\n   \\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V\n   $$\n   其中 $ d_k $ 是键向量的维度，用于缩放点积结果，防止数值过大。\n3. **加权求和**：将注意力权重与值向量相乘，得到最终的输出。\n\n#### **1.3 多头注意力（Multi-Head Attention）**\n为了增强模型的表达能力，Transformer 使用多个注意力头（Head），每个头独立计算注意力权重，然后将结果拼接起来：\n$$\n\\text{MultiHead}(Q, K, V) = \\text{Concat}(head_1, ..., head_h)W^O\n$$\n其中每个 $ head_i = \\text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $。\n\n---\n\n### **2. 位置编码（Positional Encoding）**\n由于 Transformer 没有循环结构，需要通过位置编码（Positional Encoding）来保留序列的顺序信息。位置编码可以是：\n- **正弦/余弦函数**：通过不同频率的正弦和余弦函数生成位置信息（如 $ PE_{pos, 2i} = \\sin(pos/10000^{2i/d}) $）。\n- **可学习的位置编码**：直接通过训练参数学习位置信息。\n\n---\n\n### **3. Transformer 的整体结构**\nTransformer 模型分为 **编码器（Encoder）** 和 **解码器（Decoder）** 两部分，分别用于处理输入和输出序列。\n\n#### **3.1 编码器（Encoder）**\n- **多头自注意力（Multi-Head Self-Attention）**：每个编码器层包含一个自注意力模块（用于捕捉序列内部的依赖关系）。\n- **前馈神经网络（Feed-Forward Network, FFN）**：每个编码器层还有一个全连接层，用于学习局部特征。\n- **残差连接和层归一化**：在每个子层（自注意力和 FFN）后添加残差连接和层归一化，以缓解梯度消失问题。\n\n#### **3.2 解码器（Decoder）**\n- **多头自注意力**：解码器的自注意力模块仅关注当前已生成的输出（掩码处理）。\n- **多头注意力（Masked Multi-Head Attention）**：解码器通过注意力机制关注编码器的输出（即输入序列的上下文）。\n- **前馈网络**：与编码器类似，解码器也有 FFN 层。\n\n---\n\n### **4. Transformer 的优势**\n1. **并行计算**：与 RNN 不同，Transformer 可以并行处理整个序列，显著提升训练速度。\n2. **长距离依赖**：自注意力机制能够直接连接任意两个位置的词，无需依赖循环结构。\n3. **灵活性**：适用于各种序列任务，如机器翻译、文本生成、图像识别等。\n\n---\n\n### **5. 应用场景**\n- **机器翻译**：如 Google 的神经机器翻译（GNMT）。\n- **文本生成**：如 GPT 系列模型。\n- **图像识别**：如 Vision Transformer（ViT）。\n- **自然语言理解**：如 BERT、RoBERTa 等预训练模型。\n\n---\n\n### **6. 与传统模型的对比**\n| 特性                | RNN/CNN           | Transformer       |\n|---------------------|-------------------|-------------------|\n| 并行计算            | 低（逐词处理）    | 高（全序列处理）  |\n| 长距离依赖          | 差（梯度消失）    | 好（自注意力）    |\n| 计算复杂度          | 线性（RNN）/固定（CNN） | 与序列长度平方相关 |\n| 可扩展性            | 有限              | 高（适合长序列）  |\n\n---\n\n### **7. 拓展：预训练语言模型**\nTransformer 的成功推动了预训练语言模型的发展，例如：\n- **BERT**：基于 Transformer 的双向编码器，用于文本理解。\n- **GPT**：基于 Transformer 的解码器，用于文本生成。\n- **T5**：统一的文本到文本模型，支持多种任务。\n\n---\n\n### **总结**\nTransformer 通过自注意力机制和位置编码，彻底改变了序列建模的范式。它不仅解决了传统模型的局限性，还为自然语言处理、计算机视觉等领域带来了突破性进展。理解其核心思想（自注意力）和结构（编码器-解码器）是掌握现代深度学习模型的关键。",
+      "completeness": {
+        "score": 2,
+        "covered": {
+          "Encoder": true,
+          "Decoder": true,
+          "Attention": true,
+          "Position Encoding": true
+        }
+      },
+      "instruction_following": null,
+      "accuracy": "manual"
+    },
+    {
+      "name": "role_prompt",
+      "prompt": "你是一名AI专家，请解释Transformer",
+      "output": "Transformer 是一种革命性的深度学习模型架构，由 Google 团队于 2017 年提出，主要用于自然语言处理（NLP）任务，如机器翻译。与传统的循环神经网络（RNN）不同，Transformer 通过 **自注意力机制（Self-Attention）** 和 **位置编码（Positional Encoding）** 实现并行计算，显著提升了处理长序列数据的效率和效果。\n\n---\n\n### **1. 核心思想**\nTransformer 的核心思想是：  \n**通过自注意力机制捕捉序列中不同位置之间的依赖关系，同时通过位置编码保留序列的顺序信息**。\n\n---\n\n### **2. 自注意力机制（Self-Attention）**\n自注意力机制是 Transformer 的核心模块，允许模型在处理序列时动态关注不同位置的信息。其步骤如下：\n\n#### **(1) 查询（Query）、键（Key）、值（Value）**\n- **输入序列**：每个词（token）被嵌入为向量 $ \\mathbf{h}_i $。\n- **线性变换**：将每个词向量转换为三个向量：查询 $ \\mathbf{Q} $、键 $ \\mathbf{K} $、值 $ \\mathbf{V} $。\n- **点积注意力**：计算每个位置的注意力权重，公式为：\n  $$\n  \\text{Attention}(\\mathbf{Q}, \\mathbf{K}, \\mathbf{V}) = \\text{softmax}\\left(\\frac{\\mathbf{Q}\\mathbf{K}^T}{\\sqrt{d_k}}\\right)\\mathbf{V}\n  $$\n  其中 $ d_k $ 是键向量的维度，用于缩放点积结果以避免数值爆炸。\n\n#### **(2) 多头注意力（Multi-Head Attention）**\n- 为了捕捉不同位置的依赖关系，Transformer 使用多个注意力头（Head），每个头独立计算注意力权重，最后将结果拼接并线性变换。\n- 多头注意力允许模型关注不同尺度的特征，增强模型的表达能力。\n\n---\n\n### **3. 位置编码（Positional Encoding）**\n由于 Transformer 没有循环结构，因此需要通过 **位置编码** 明确序列中每个词的位置信息。位置编码可以是：\n- **正弦/余弦函数**：生成与序列长度无关的可学习位置编码，例如：\n  $$\n  PE_{(pos, 2i)} = \\sin\\left(\\frac{pos}{10000^{2i/d}}\\right), \\quad PE_{(pos, 2i+1)} = \\cos\\left(\\frac{pos}{10000^{2i/d}}\\right)\n  $$\n- **可学习的位置嵌入**：通过训练参数学习位置信息。\n\n---\n\n### **4. 模型结构**\nTransformer 模型由 **编码器（Encoder）** 和 **解码器（Decoder）** 两部分组成，每部分包含多个相同的子层：\n\n#### **(1) 编码器（Encoder）**\n- **多头自注意力（Multi-Head Self-Attention）**：处理输入序列，捕捉词与词之间的依赖关系。\n- **前馈网络（Feed-Forward Network）**：每个位置独立进行非线性变换，通常由两个全连接层组成。\n- **残差连接（Residual Connection）** 和 **层归一化（Layer Normalization）**：缓解梯度消失，提升训练稳定性。\n\n#### **(2) 解码器（Decoder）**\n- **多头自注意力**：解码器内部使用掩码（Mask）防止未来信息泄露（即只关注当前及之前的词）。\n- **编码器-解码器注意力（Encoder-Decoder Attention）**：将编码器的输出与解码器的当前状态进行注意力对齐，实现上下文理解。\n- 同样包含残差连接和层归一化。\n\n---\n\n### **5. 训练与推理**\n- **训练阶段**：使用教师强制（Teacher Forcing）将目标词作为输入，解码器逐步生成输出。\n- **推理阶段**：通过采样或束搜索（Beam Search）生成最终输出，通常需要结合概率分布选择最可能的词。\n\n---\n\n### **6. 应用场景**\nTransformer 已被广泛应用于：\n- **机器翻译**（如 Google 翻译）\n- **文本生成**（如 GPT、BERT）\n- **图像识别**（如 Vision Transformer）\n- **语音处理**（如语音识别和合成）\n- **其他序列建模任务**（如问答系统、摘要生成）\n\n---\n\n### **7. 优势与挑战**\n- **优势**：\n  - 并行计算：无需循环，适合长序列。\n  - 自注意力机制：捕捉全局依赖，提升模型性能。\n  - 可扩展性：通过堆叠多个编码器/解码器模块提升模型复杂度。\n\n- **挑战**：\n  - **计算复杂度**：自注意力机制的复杂度为 $ O(n^2) $，处理超长序列时效率较低。\n  - **训练数据需求**：需要大量数据进行预训练，资源消耗大。\n\n---\n\n### **总结**\nTransformer 通过自注意力机制和位置编码，彻底改变了自然语言处理的范式。其并行计算能力和对长序列的高效处理，使其成为现代 NLP 的基石。后续的变体（如 BERT、GPT、T5）进一步拓展了其应用范围，推动了生成式 AI 和大模型的发展。",
+      "completeness": {
+        "score": 2,
+        "covered": {
+          "Encoder": true,
+          "Decoder": true,
+          "Attention": true,
+          "Position Encoding": true
+        }
+      },
+      "instruction_following": null,
+      "accuracy": "manual"
+    },
+    {
+      "name": "structured_prompt",
+      "prompt": "请按照以下结构解释Transformer：\n\n# 1. Transformer解决什么问题\n\n# 2. 核心组成\n\n# 3. Attention机制\n\n# 4. 一个生活中的例子\n\n# 5. 总结",
+      "output": "# 1. Transformer解决什么问题  \nTransformer模型主要解决传统序列模型（如RNN和CNN）的局限性：  \n- **长距离依赖问题**：RNN在处理长序列时容易出现梯度消失/爆炸，而CNN只能捕捉局部特征，无法建模全局依赖。  \n- **并行计算效率低**：RNN是串行处理，CNN的局部感受野限制了并行性。  \n- **多语言任务的复杂性**：如机器翻译中，需同时理解上下文和跨语言结构。  \nTransformer通过**自注意力机制**（Self-Attention）和**位置编码**，实现了对序列的全局建模，并支持并行计算，显著提升了效率和效果。\n\n---\n\n# 2. 核心组成  \nTransformer由**编码器（Encoder）**和**解码器（Decoder）**组成，每个部分包含多个子模块：  \n1. **编码器**：  \n   - **多头自注意力机制（Multi-Head Self-Attention）**：捕捉输入序列的全局依赖。  \n   - **前馈神经网络（Feed-Forward Network）**：对每个位置进行非线性变换。  \n   - **残差连接（Residual Connection）**和**层归一化（Layer Normalization）**：提升训练稳定性。  \n2. **解码器**：  \n   - **多头自注意力**：解码器内部的自注意力，用于理解上下文。  \n   - **多头注意力**：解码器关注编码器的输出，实现跨语言对齐。  \n   - **掩码机制**：防止解码器在生成时“偷看”未来信息（如翻译中避免提前泄露目标词）。  \n3. **位置编码（Positional Encoding）**：为序列添加位置信息，弥补纯注意力机制对位置的忽略（如正弦/余弦函数或学习得到的嵌入）。\n\n---\n\n# 3. Attention机制  \n**自注意力（Self-Attention）**是Transformer的核心：  \n1. **计算过程**：  \n   - 对输入序列的每个词，计算其**Query（Q）**、**Key（K）**、**Value（V）**向量。  \n   - 通过**点积**（Q·K）得到注意力权重，再乘以V得到加权和，形成上下文表示。  \n2. **多头注意力**：  \n   - 将输入拆分为多个头（如8个），分别计算注意力权重，最后拼接并线性变换，捕捉不同粒度的依赖（如词汇级、短语级）。  \n3. **优势**：  \n   - 并行处理序列，无需按顺序计算。  \n   - 动态调整不同词的重要性（如“自然语言处理”中，“语言”可能比“自然”更重要）。  \n\n---\n\n# 4. 一个生活中的例子  \n**场景**：将中文句子“我爱自然语言处理”翻译成英文“ I love natural language processing”。  \n1. **编码器处理中文**：  \n   - 通过自注意力机制，模型理解“自然语言处理”中各词的关联（如“自然”和“语言”可能共同构成“自然语言”）。  \n   - 位置编码确保“处理”位于句末，不会被误认为开头。  \n2. **解码器生成英文**：  \n   - 解码器内部自注意力关注“我爱”中的“爱”与“自然语言处理”的关联。  \n   - 多头注意力将中文“处理”与英文“processing”对齐，同时通过掩码机制确保生成“love”时不会提前看到“processing”。  \n3. **结果**：模型通过注意力机制动态调整词间关系，最终输出准确的翻译。\n\n---\n\n# 5. 总结  \nTransformer通过**自注意力机制**和**位置编码**，解决了传统模型的长距离依赖和并行计算问题，成为NLP领域的核心技术。其核心优势包括：  \n- **全局建模能力**：捕捉序列中任意位置的依赖关系。  \n- **并行计算**：大幅提升训练和推理效率。  \n- **多头注意力**：多粒度捕捉特征，增强模型表达能力。  \nTransformer不仅推动了机器翻译、文本生成等任务的发展，还启发了后续模型（如BERT、GPT）的设计，是现代深度学习的基石。",
+      "completeness": {
+        "score": 2,
+        "covered": {
+          "Encoder": true,
+          "Decoder": true,
+          "Attention": true,
+          "Position Encoding": true
+        }
+      },
+      "instruction_following": {
+        "score": 2,
+        "sections_found": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "expected": 5
+      },
+      "accuracy": "manual"
+    }
+  ]
+}
